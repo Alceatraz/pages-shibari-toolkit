@@ -1,0 +1,402 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8"/>
+
+    <title>Timer</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <style>
+        @font-face {
+            font-family: "JetBrains Mono";
+            src: url("/public/fonts/JetBrainsMono.ttf") format("truetype");
+        }
+
+        html {
+            width: 100%;
+            height: 100%;
+            min-width: max-content;
+            min-height: max-content;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+            color: #ffffff;
+            background-color: #000000;
+
+            font-family: "JetBrains Mono", monospace;
+
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            font-variant-ligatures: contextual;
+
+            font-feature-settings: "case" on;
+        }
+
+        .wrapper {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+            display: grid;
+            align-items: center;
+            justify-items: center;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+        }
+
+        .wrapper > .number {
+            --safe-size: min(calc(100vw / 6), calc(100vh / 2));
+            font-size: var(--safe-size);
+        }
+
+        .wrapper > .colons {
+            --safe-size: min(calc(100vw / 6), calc(100vh / 2));
+            font-size: var(--safe-size);
+        }
+
+        .wrapper > .button {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+
+            display: grid;
+            gap: min(1em, 1vh, 1vw, 10px);
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .wrapper > .button > div {
+            width: calc(100% - 2em);
+            height: calc(100% - 2em);
+            margin: 1em;
+            padding: 0;
+            box-sizing: border-box;
+
+            border: 2px solid #ffffff;
+            border-radius: 1em;
+
+            display: grid;
+            place-items: center;
+        }
+
+        .wrapper > .button > div > div {
+            width: max-content;
+            height: max-content;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+            --safe-size: min(calc(100vw / 28), calc(100vh / 5));
+            font-size: var(--safe-size);
+        }
+
+        .wrapper > .button > div:nth-child(1) > div {
+            width: max-content;
+            height: max-content;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+
+            display: flex;
+            place-items: center;
+        }
+
+        .wrapper > .button > div:nth-child(1) > div > div {
+            width: max-content;
+            height: max-content;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .wrapper > .button > div:nth-child(1) > div > div:nth-child(1) {
+            width: 1em;
+            height: 1em;
+            margin: 0 0.5em 0 0;
+            padding: 0;
+            border-radius: 1em;
+        }
+
+        .dot-red {
+            background-color: #ff0000;
+            box-shadow: 0 0 0.5em #ff3333;
+        }
+
+        .dot-green {
+            background-color: #00ff00;
+            box-shadow: 0 0 0.5em #33ff00;
+        }
+
+        .landscape {
+            display: none;
+        }
+
+        @media (hover: none) and (orientation: portrait) and (pointer: coarse) {
+            .landscape {
+                width: 100vw;
+                height: 100vh;
+                margin: 0;
+                padding: 0;
+
+                position: absolute;
+                top: 0;
+                left: 0;
+
+                font-size: 1em;
+                background-color: green;
+
+                /*display: flex;*/
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div id="wrapper" class="wrapper">
+    <div class="number" id="clock-hh">00</div>
+    <div class="colons" id="colon-c1">:</div>
+    <div class="number" id="clock-mm">00</div>
+    <div class="colons" id="colon-c2">:</div>
+    <div class="number" id="clock-ss">00</div>
+
+    <div class="number" id="timer-hh">00</div>
+    <div class="colons" id="colon-t1">:</div>
+    <div class="number" id="timer-mm">00</div>
+    <div class="colons" id="colon-t2"></div>
+
+    <div class="button">
+        <div style="grid-column: span 2" onclick="clickBegin()">
+            <div>
+                <div id="timer-dot"></div>
+                <div id="timer-text"></div>
+            </div>
+        </div>
+
+        <div>
+            <div id="button-toggle" onclick="clockReset()">结束</div>
+        </div>
+
+        <div>
+            <div id="button-fullscreen" onclick="clickFullscreen()">
+                全屏
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="landscape" onclick="gotoDisplay()">
+    <div>进入全屏模式</div>
+</div>
+</body>
+
+<script>
+  let elementWrapper;
+  let elementWrapperClock;
+  let elementWrapperTimer;
+
+  let elementClockHH;
+  let elementClockMM;
+  let elementClockSS;
+  let elementTimerHH;
+  let elementTimerMM;
+
+  let elementTimerDot;
+  let elementTimerText;
+
+  let timer;
+
+  window.onload = () => {
+    elementWrapper = document.getElementById("wrapper");
+    elementWrapperClock = document.getElementById("wrapper-clock");
+    elementWrapperTimer = document.getElementById("wrapper-timer");
+
+    elementClockHH = document.getElementById("clock-hh");
+    elementClockMM = document.getElementById("clock-mm");
+    elementClockSS = document.getElementById("clock-ss");
+    elementTimerHH = document.getElementById("timer-hh");
+    elementTimerMM = document.getElementById("timer-mm");
+    elementTimerDot = document.getElementById("timer-dot");
+    elementTimerText = document.getElementById("timer-text");
+
+    loadTimer();
+
+    if (timer === null) {
+      resetTimer();
+    } else {
+      beginTimer();
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        if (wakeLock === null) requestWakeLock();
+      }
+    });
+
+    window.requestAnimationFrame(updateDisplay);
+  };
+
+  const loadTimer = () => {
+    const savedTimer = localStorage.getItem("timer");
+    console.info(`loadTimer: ${savedTimer}`);
+    if (savedTimer === null) {
+      timer = null;
+    } else {
+      timer = Number(savedTimer);
+    }
+  };
+
+  const saveTimer = () => {
+    if (timer === null) {
+      localStorage.removeItem("timer");
+    } else {
+      localStorage.setItem("timer", String(timer));
+    }
+  };
+
+  //= ==========================================================================
+
+  let wakeLock = null;
+
+  const requestWakeLock = async () => {
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => {
+        wakeLock = null;
+      });
+    } catch (error) {
+      alert(`无法屏幕常亮: ${error}`);
+    }
+  };
+
+  const requestLandscape = async () => {
+    try {
+      await screen.orientation.lock("landscape");
+    } catch (error) {
+      alert(`无法锁定横屏: ${error}`);
+    }
+  };
+
+  const requestFullscreen = async () => {
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (error) {
+      alert(`无法进入全屏: ${error}`);
+    }
+  };
+
+  const gotoDisplay = async () => {
+    await requestFullscreen();
+    await requestLandscape();
+    await requestWakeLock();
+  };
+
+  //= ==========================================================================
+
+  const clickFullscreen = async () => {
+    await requestFullscreen();
+    await requestLandscape();
+    await requestWakeLock();
+  };
+
+  //= ==========================================================================
+
+  const beginTimer = () => {
+    elementTimerText.innerText = "计时中";
+    elementTimerDot.classList.add("dot-red");
+    elementTimerDot.classList.remove("dot-green");
+    elementTimerDot.style.opacity = "1";
+  };
+
+  const resetTimer = () => {
+    elementTimerText.innerText = "未计时";
+    elementTimerDot.classList.add("dot-green");
+    elementTimerDot.classList.remove("dot-red");
+    elementTimerDot.style.opacity = "1";
+  };
+
+  const clickBegin = () => {
+    if (timer !== null) {
+      return;
+    }
+    timer = Math.floor(Date.now() / 1000);
+    beginTimer();
+    saveTimer();
+  };
+
+  const clockReset = async () => {
+    timer = null;
+    resetTimer();
+    saveTimer();
+  };
+
+  //= ==========================================================================
+
+  let lastEpoch = 0;
+
+  const updateDisplay = () => {
+    const now = new Date();
+
+    const epoch = Math.floor(now / 1000);
+
+    if (lastEpoch !== epoch) {
+      lastEpoch = epoch;
+      elementClockHH.innerText = String(now.getHours()).padStart(
+        2,
+        "0",
+      );
+      elementClockMM.innerText = String(now.getMinutes()).padStart(
+        2,
+        "0",
+      );
+      elementClockSS.innerText = String(now.getSeconds()).padStart(
+        2,
+        "0",
+      );
+    }
+
+    if (timer !== null) {
+      const elapsed = epoch - timer;
+      if (elapsed < 6000) {
+        elementTimerHH.innerText = String(
+          Math.floor(elapsed / 60),
+        ).padStart(2, "0");
+        elementTimerMM.innerText = String(
+          Math.floor(elapsed % 60),
+        ).padStart(2, "0");
+      } else {
+        elementTimerHH.innerText = String(
+          Math.floor(elapsed / 3600),
+        ).padStart(2, "0");
+        elementTimerMM.innerText = String(
+          Math.floor(elapsed % 3600),
+        ).padStart(2, "0");
+      }
+    }
+
+    if (timer !== null) {
+      if (now.getMilliseconds() < 500) {
+        elementTimerDot.style.opacity = "1";
+      } else {
+        elementTimerDot.style.opacity = "0";
+      }
+    }
+
+    window.requestAnimationFrame(updateDisplay);
+  };
+</script>
+
+</html>
