@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import {defineConfig} from 'astro/config';
 import starlight from '@astrojs/starlight';
 
 export default defineConfig({
@@ -7,8 +7,8 @@ export default defineConfig({
   integrations: [starlight({
 
     title: {
-      en: 'Shibari Toolkit',
-      'zh-cn': '绳缚百科',
+      'en': 'Shibari Toolkit',
+      'zh-CN': '绳缚百科',
     },
 
     //= ========================================================================
@@ -23,7 +23,7 @@ export default defineConfig({
 
     //= ========================================================================
 
-    defaultLocale: 'en',
+    defaultLocale: 'zh-cn',
 
     locales: {
 
@@ -42,6 +42,32 @@ export default defineConfig({
     //= ========================================================================
 
     sidebar: [
+
+      {
+        label: 'Reference',
+        items: [
+          {autogenerate: {directory: 'reference'}}
+        ],
+      },
+
+      {
+        label: '工具',
+        translations: {
+          en: 'Tools'
+        },
+        items: [
+          {
+            label: '计时大屏',
+            translations: {
+              en: 'Timer Clock'
+            },
+            link: '/tools/timer.html',
+            attrs: {
+              target: '_blank'
+            }
+          }
+        ]
+      },
 
       {
         label: 'Guides',
@@ -83,12 +109,7 @@ export default defineConfig({
         ]
       },
 
-      {
-        label: 'Reference',
-        items: [
-          { autogenerate: { directory: 'reference' } }
-        ],
-      },
+
 
 
         {
@@ -112,24 +133,7 @@ export default defineConfig({
           ],
         },
   
-        {
-          label: '工具',
-          translations: {
-            en: 'Tools'
-          },
-          items: [
-            {
-              label: '计时大屏',
-              translations: {
-                en: 'Timer Clock'
-              },
-              link: '/tools/timer.html',
-              attrs: {
-                target: '_blank'
-              }
-            }
-          ]
-        },
+
   
         // {
         //   label: '关于',
